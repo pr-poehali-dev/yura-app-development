@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +6,8 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import Icon from '@/components/ui/icon';
 
 interface Article {
@@ -18,6 +20,7 @@ interface Article {
   image: string;
   rating: number;
   comments: number;
+  content: string;
 }
 
 interface Comment {
@@ -31,6 +34,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
   const [selectedArticle, setSelectedArticle] = useState<number | null>(null);
+  const [readingArticle, setReadingArticle] = useState<number | null>(null);
   const [comments, setComments] = useState<Record<number, Comment[]>>({
     1: [
       { id: 1, author: 'Мария', text: 'Отличная статья! Очень полезно.', date: '2 дня назад' },
@@ -60,6 +64,7 @@ const Index = () => {
       image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5',
       rating: 4.8,
       comments: 12,
+      content: 'В 2024 году веб-дизайн переживает настоящую революцию. Пользователи ожидают не просто красивые интерфейсы, а целые цифровые переживания.\n\nГрадиенты снова в тренде, но теперь они более утончённые и сложные. Вместо простых двухцветных переходов дизайнеры создают многослойные композиции с несколькими точками градиента.\n\nАнимации стали неотъемлемой частью UX. Микроинтеракции направляют внимание пользователя и делают интерфейс живым. Важно помнить о производительности — каждая анимация должна быть плавной и не замедлять работу сайта.\n\nМинимализм эволюционировал в "максимализм с умом" — смелые типографические решения, яркие цвета, но при этом чистота и воздух в композиции. Это баланс между выразительностью и функциональностью.\n\nDark mode стал стандартом де-факто. Пользователи ценят возможность переключения тем, особенно при длительном чтении. Важно продумать цветовую палитру так, чтобы контент был читабельным в обоих режимах.',
     },
     {
       id: 2,
@@ -71,6 +76,7 @@ const Index = () => {
       image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee',
       rating: 4.5,
       comments: 8,
+      content: 'React появился в 2013 году и полностью изменил подход к созданию пользовательских интерфейсов. Компонентный подход, предложенный Facebook, стал новым стандартом индустрии.\n\nКлючевая идея React — декларативность. Вместо того чтобы описывать шаги по изменению DOM, разработчик описывает желаемое состояние интерфейса. React сам заботится о том, как эффективно обновить страницу.\n\nВиртуальный DOM стал революционным решением проблемы производительности. Вместо прямой работы с медленным браузерным DOM, React сначала обновляет виртуальное представление, вычисляет минимальные изменения и только потом применяет их.\n\nЭкосистема React невероятно богата: Redux для управления состоянием, Next.js для SSR, React Native для мобильных приложений. Это не просто библиотека, а целая платформа для разработки.\n\nСегодня React используют миллионы разработчиков, а навыки работы с ним стали обязательными для фронтенд-специалистов.',
     },
     {
       id: 3,
@@ -82,6 +88,7 @@ const Index = () => {
       image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f',
       rating: 4.9,
       comments: 15,
+      content: 'Контент-маркетинг — это не просто написание статей. Это системный подход к привлечению и удержанию аудитории через ценный контент.\n\nШаг 1: Определите свою целевую аудиторию. Создайте детальные портреты ваших идеальных клиентов. Что их волнует? Какие проблемы они решают? Где они ищут информацию?\n\nШаг 2: Выберите форматы контента. Статьи в блоге, видео, подкасты, инфографика — у каждого формата свои преимущества. Начните с 1-2 форматов и масштабируйте постепенно.\n\nШаг 3: Создайте контент-план. Регулярность важнее объёма. Лучше публиковать одну качественную статью в неделю, чем пять посредственных.\n\nШаг 4: Оптимизируйте для SEO. Исследуйте ключевые слова, создавайте качественные заголовки, используйте внутренние ссылки.\n\nШаг 5: Анализируйте результаты. Отслеживайте метрики: просмотры, время на странице, конверсии. Учитесь на данных и корректируйте стратегию.',
     },
     {
       id: 4,
@@ -93,6 +100,7 @@ const Index = () => {
       image: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1',
       rating: 4.6,
       comments: 10,
+      content: 'Цвет — один из мощнейших инструментов в арсенале бренд-дизайнера. Каждый оттенок вызывает определённые эмоции и ассоциации.\n\nКрасный — энергия, страсть, срочность. Не случайно его используют для кнопок "Купить" и распродаж. Coca-Cola, Netflix, YouTube — все они используют силу красного.\n\nСиний — доверие, стабильность, профессионализм. Поэтому его любят банки и IT-компании. Facebook, Twitter, LinkedIn выбрали синий неслучайно.\n\nЗелёный — природа, рост, здоровье. Идеален для эко-брендов и финтеха (ассоциация с деньгами). Starbucks и Spotify успешно используют зелёный.\n\nЖёлтый — оптимизм, молодость, доступность. McDonald\'s сочетает жёлтый с красным для создания ощущения радости и скорости.\n\nВажно помнить о культурных различиях — цвета воспринимаются по-разному в разных странах. Тестируйте свой выбор на целевой аудитории.',
     },
     {
       id: 5,
@@ -104,6 +112,7 @@ const Index = () => {
       image: 'https://images.unsplash.com/photo-1552664730-d307ca884978',
       rating: 4.7,
       comments: 6,
+      content: 'Agile — это не только для крупных IT-компаний. Малый бизнес может получить огромную пользу от гибких методологий.\n\nОсновной принцип Agile — итеративность. Вместо долгого планирования на год вперёд, вы работаете короткими спринтами в 1-2 недели. Это позволяет быстро адаптироваться к изменениям рынка.\n\nДейли-встречи (15 минут каждое утро) помогают команде синхронизироваться. Каждый делится: что сделал вчера, что планирует сегодня, какие есть препятствия.\n\nРетроспективы после каждого спринта — ключ к улучшению процессов. Команда обсуждает: что сработало хорошо, что можно улучшить, какие эксперименты попробовать.\n\nКанбан-доски (физические или цифровые) визуализируют рабочий процесс. Trello, Notion или даже стикеры на стене — выбирайте удобный инструмент.\n\nГлавное — не пытайтесь внедрить все практики сразу. Начните с малого и адаптируйте под свой контекст.',
     },
     {
       id: 6,
@@ -115,6 +124,7 @@ const Index = () => {
       image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c',
       rating: 4.4,
       comments: 9,
+      content: 'Удалённая работа стала новой нормой, но многие до сих пор борются с продуктивностью дома. Вот проверенные стратегии.\n\nСоздайте рабочее пространство. Даже если у вас нет отдельного кабинета, выделите конкретное место для работы. Мозг должен ассоциировать это место с фокусом и продуктивностью.\n\nУстановите чёткие границы. Определите рабочие часы и придерживайтесь их. Сообщите семье/соседям по квартире, когда вас нельзя отвлекать.\n\nТехника Помодоро творит чудеса: 25 минут фокусной работы, 5 минут перерыва. После 4 помодоро — длинный перерыв 15-30 минут.\n\nИнструменты коммуникации: Slack для текста, Zoom для видео, Notion для документации. Главное — договориться с командой о правилах использования.\n\nНе забывайте о физической активности. Короткие прогулки между задачами, растяжка каждый час, полноценный обеденный перерыв — это инвестиция в продуктивность.\n\nСоциальное взаимодействие важно. Планируйте виртуальные кофе-брейки с коллегами, работайте иногда из коворкинга.',
     },
   ];
 
@@ -149,6 +159,19 @@ const Index = () => {
     
     setNewComment('');
   };
+
+  const currentArticle = articles.find((a) => a.id === readingArticle);
+
+  useEffect(() => {
+    if (readingArticle) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [readingArticle]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -279,7 +302,15 @@ const Index = () => {
                         <span className="text-sm">{comments[article.id]?.length || 0}</span>
                       </div>
                     </div>
-                    <Button size="sm" variant="ghost" className="text-primary">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReadingArticle(article.id);
+                      }}
+                    >
                       Читать
                       <Icon name="ArrowRight" className="ml-1" size={16} />
                     </Button>
@@ -390,6 +421,133 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <Dialog open={readingArticle !== null} onOpenChange={() => setReadingArticle(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0">
+          {currentArticle && (
+            <div className="flex flex-col h-full">
+              <div className="relative h-64 overflow-hidden">
+                <img
+                  src={currentArticle.image}
+                  alt={currentArticle.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent flex items-end">
+                  <div className="p-8 w-full">
+                    <Badge className="gradient-bg text-white border-0 mb-3">
+                      {currentArticle.category}
+                    </Badge>
+                    <h2 className="text-4xl font-bold text-white mb-2">{currentArticle.title}</h2>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 border-2 border-white">
+                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentArticle.author}`} />
+                        <AvatarFallback>{currentArticle.author[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="text-white">
+                        <p className="text-sm font-medium">{currentArticle.author}</p>
+                        <p className="text-xs opacity-90">{currentArticle.date}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 bg-background/80 hover:bg-background"
+                  onClick={() => setReadingArticle(null)}
+                >
+                  <Icon name="X" size={20} />
+                </Button>
+              </div>
+              
+              <ScrollArea className="flex-1 px-8 py-6">
+                <article className="prose prose-lg max-w-none">
+                  <p className="text-xl text-muted-foreground mb-6 italic">
+                    {currentArticle.excerpt}
+                  </p>
+                  <div className="text-base leading-relaxed whitespace-pre-line">
+                    {currentArticle.content}
+                  </div>
+                </article>
+
+                <Separator className="my-8" />
+
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRating(currentArticle.id, 0.1)}
+                          className="hover:bg-primary hover:text-white"
+                        >
+                          <Icon name="ThumbsUp" className="mr-2" size={16} />
+                          {ratings[currentArticle.id]?.toFixed(1)}
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Icon name="MessageCircle" size={18} />
+                        <span>{comments[currentArticle.id]?.length || 0} комментариев</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Icon name="Eye" size={18} />
+                        <span>2.4K просмотров</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline">
+                        <Icon name="Share2" size={16} className="mr-2" />
+                        Поделиться
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Icon name="Bookmark" size={16} className="mr-2" />
+                        Сохранить
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-2xl font-bold mb-4">Комментарии ({comments[currentArticle.id]?.length || 0})</h3>
+                  <div className="space-y-4 mb-6">
+                    {comments[currentArticle.id]?.map((comment) => (
+                      <div key={comment.id} className="bg-muted/30 p-4 rounded-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback>{comment.author[0]}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <span className="font-medium text-sm">{comment.author}</span>
+                            <span className="text-xs text-muted-foreground ml-2">{comment.date}</span>
+                          </div>
+                        </div>
+                        <p className="text-sm ml-11">{comment.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3">
+                    <Textarea
+                      placeholder="Добавить комментарий..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                    <Button
+                      onClick={() => {
+                        handleAddComment(currentArticle.id);
+                      }}
+                      className="gradient-bg text-white h-auto"
+                    >
+                      <Icon name="Send" size={18} />
+                    </Button>
+                  </div>
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <footer className="py-12 border-t border-border/40">
         <div className="container mx-auto px-4">
